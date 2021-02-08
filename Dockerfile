@@ -1,4 +1,4 @@
-# OSM History Render container.
+# OSM History Render toolbox Docker build.
 # See Readme.md and LICENSE.
 # Copyirght (C) 2021 Jeremy D Monin.
 

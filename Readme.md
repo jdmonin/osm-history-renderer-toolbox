@@ -1,15 +1,18 @@
-# OSM History Renderer Container in Docker
+# OSM History Renderer toolbox Docker Build
 
-TODO  maybe a modestly-size rendered image?
+[![at 2008-09](img/thumbs/ubnorth-2008-09.png)](img/ubnorth-2008-09.png)
+[![at 2011-04](img/thumbs/ubnorth-2011-04.png)](img/ubnorth-2011-04.png)
+[![at 2015-10](img/thumbs/ubnorth-2015-10.png)](img/ubnorth-2015-10.png)
+[![at 2021-01](img/thumbs/ubnorth-2021-01.png)](img/ubnorth-2021-01.png)
 
 
 ## Introduction
 
-This work in progress is a toolbox for looking back at how a given section of [OpenStreetmap](https://www.openstreetmap.org/) has changed over time, and rendering images or videos of that history.
+This work in progress is a toolbox for looking back at how a given section of [OpenStreetMap](https://www.openstreetmap.org/) has changed over time, and rendering images or videos of that history.
 
 It solves the problem of collecting and compiling the various tools and utilities involved.
-Right now it has a lot of rough edges and manual steps, but provides everything you need.
-When time permits, more scripts and a friendlier interface can be added.
+Right now there are a lot of rough edges and manual steps, but it provides everything you need.
+When time allows, more scripts and a friendlier interface can be added.
 
 Currently, running this image just runs a bash shell inside it.
 To work with OSM's large data files, you'll want to run it with a bind mount to `/datasets` .
@@ -17,7 +20,7 @@ To work with OSM's large data files, you'll want to run it with a bind mount to 
 
 ## General Process
 
-- Decide which area you want to render history for, using the [OpenStreetmap](https://www.openstreetmap.org/) website
+- Decide which area you want to render history for, using the [OpenStreetMap](https://www.openstreetmap.org/) website
 - Download history file for that area's surrounding region from the "internal" area of https://osm-internal.download.geofabrik.de/
 - Extract the history of the smaller area you want to render, or its surrounding metropolitan area
 - Import that smaller history file into a PostGIS database
@@ -29,9 +32,12 @@ For more details see [Processing.md](Processing.md).
 
 ## About the image and software
 
-For consistency, stage 1 of this image builds the importer and renderer. Stage 2 adds them to overv's tile server docker image [overv/openstreetmap-tile-server/](https://hub.docker.com/r/overv/openstreetmap-tile-server/) ([github](https://github.com/Overv/openstreetmap-tile-server)).
+Stage 1 of this image builds the importer and renderer. Stage 2 adds them to overv's tile server docker image [overv/openstreetmap-tile-server](https://hub.docker.com/r/overv/openstreetmap-tile-server/) ([github](https://github.com/Overv/openstreetmap-tile-server)).
 
-Both stages are built from ubuntu 18.04.
+For consistency, both stages are built from ubuntu 18.04.
+
+The OSM history renderer itself is only semi-maintained, and can be found at
+https://github.com/joto/osm-history-renderer
 
 
 ## Open Source project, licensed under Apache 2.0

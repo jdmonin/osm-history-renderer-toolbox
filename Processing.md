@@ -6,7 +6,7 @@ Best practices and other improvements will be done as time permits.
 
 ## General Process
 
-- Decide which area you want to render history for, using the [OpenStreetmap](https://www.openstreetmap.org/) website
+- Decide which area you want to render history for, using the [OpenStreetMap](https://www.openstreetmap.org/) website
 - Download history file for that area's surrounding region from the "internal" area of https://osm-internal.download.geofabrik.de/
 - Extract the history of the smaller area you want to render, or its surrounding metropolitan area
 - Import that smaller history file into a PostGIS database
@@ -136,6 +136,9 @@ The `-x` parameter sets the png's resolution.
 
 
 ## Render a timespan into a video
+
+Note: Only one render can run at a time, because of how the renderer adds/drops
+views in the database as it runs.
 
 ### Install ffmpeg
 
