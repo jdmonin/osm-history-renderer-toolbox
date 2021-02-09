@@ -1,15 +1,16 @@
 # Details of the Entire Process
 
-Here's a TDLR of the importing and rendering process.
+Here is how to run the importing and rendering process.
+You will run most of these commands inside the toolbox container.
 Best practices and other improvements will be done as time permits.
 
 
 ## General Process
 
-- Decide which area you want to render history for, using the [OpenStreetMap](https://www.openstreetmap.org/) website
+- Decide which local area you want to render history for, using the [OpenStreetMap](https://www.openstreetmap.org/) website
 - Download history file for that area's surrounding region from the "internal" area of https://osm-internal.download.geofabrik.de/
-- Extract the history of the smaller area you want to render, or its surrounding metropolitan area
-- Import that smaller history file into a PostGIS database
+- Extract the history of the local area you want to render, or its surrounding metropolitan area
+- Import that extracted history into a PostGIS database
 - Render the area at a single date
 - Or, render a timespan of image "frames" and make them a video with a program like ffmpeg
 
@@ -47,7 +48,7 @@ it can always be recreated by importing the extract history file again.
 
 ## Finding your Area and Bounding Box
 
-Browse the map at https://www.openstreetmap.org/ and decide which area you want to
+Browse the map at https://www.openstreetmap.org/ and decide which specific area you want to
 render the history of.
 
 You'll need to make a note of its "Bounding Box" corners (west, south, east, north):
@@ -89,10 +90,16 @@ so you can then render other small areas within the same metro.
 
 `osmium extract /datasets/your-region.osh.pbf -H --bbox -79.0778,42.6923,-78.5706,43.2030 --set-bounds -o /datasets/your-metro-area.osh.pbf`
 
+Optionally, view statistics for the number of nodes and ways:
+
+`osmium fileinfo -e /datasets/your-metro-area.osh.pbf`
+
+The next step's import command will count up to those numbers as a progress indicator.
+
 
 ## Import that smaller history file into a PostGIS database
 
-### Start postgres
+### Start postgres server
 
 `service postgresql start`
 
@@ -104,10 +111,10 @@ If this is your first time using this database, create it:
 sudo -u postgres createuser renderer
 echo "ALTER USER renderer PASSWORD 'renderer'" | sudo -u postgres psql
 sudo -u postgres createdb -E UTF8 -O renderer gis
-echo 'CREATE EXTENSION postgis; CREATE EXTENSION hstore; CREATE EXTENSION btree_gist; GRANT ALL ON geometry_columns TO renderer; GRANT ALL ON spatial_ref_sys TO renderer' | psql postgresql://renderer:renderer@localhost/gis 
+echo 'CREATE EXTENSION postgis; CREATE EXTENSION hstore; CREATE EXTENSION btree_gist; GRANT ALL ON geometry_columns TO renderer; GRANT ALL ON spatial_ref_sys TO renderer' | sudo -u postgres psql gis
 ```
 
-Otherwise just empty its tables to reset it:
+Otherwise just empty the tables to reset it:
 
 ```
 echo 'delete from hist_polygon; delete from hist_line; delete from hist_point;' | psql postgresql://renderer:renderer@localhost/gis 
@@ -128,7 +135,9 @@ To render a single `png` image:
 
 ```
 su - renderer
-/build/osm-history-renderer/renderer/render.py --style /home/renderer/src/openstreetmap-carto/mapnik-hist.xml --db postgresql://renderer:renderer@localhost/gis -x 1560x1200 --bbox -78.80725,42.99048,-78.77087,43.01311 --date 2021-01-31 --file /datasets/yourarea-2021-01
+/build/osm-history-renderer/renderer/render.py --style /home/renderer/src/openstreetmap-carto/mapnik-hist.xml \
+  --db postgresql://renderer:renderer@localhost/gis -x 1560x1200 --bbox -78.80725,42.99048,-78.77087,43.01311 \
+  --date 2021-01-31 --file /datasets/yourarea-2021-01
 ```
 
 This will output the area as it appeared on 2021-01-31 to `/datasets/yourarea-2021-01.png`.
@@ -140,6 +149,27 @@ The `-x` parameter sets the png's resolution.
 Note: Only one render can run at a time, because of how the renderer adds/drops
 views in the database as it runs.
 
+### Render the image frames
+
+To render a timespan of image "frames" and make them a video with ffmpeg:
+
+```
+su - renderer
+mkdir your-area-video && cd your-area-video
+/build/osm-history-renderer/renderer/render-animation.py --style /home/renderer/src/openstreetmap-carto/mapnik-hist.xml \
+  --db postgresql://renderer:renderer@localhost/gis -x 1560x1200 --bbox -78.80725,42.99048,-78.77087,43.01311 \
+  --label "\n%Y-%m  " --label-gravity NorthEast
+```
+
+This will make an `animap` subdirectory and output each animation frame there,
+numbered starting from `0000000000.png`.
+
+The renderer defaults to starting just before the earliest data point in the area,
+and stepping 1 month at a time to the present day. The `--label` is optional.
+You can change the time step with an option like: `--anistep=months=+3` .  
+For more options, run:  
+`/build/osm-history-renderer/renderer/render-animation.py -h`
+
 ### Install ffmpeg
 
 Because it adds dozens of packages and takes up several hundred MB of space,
@@ -150,28 +180,9 @@ apt update
 apt install -y --no-install-recommends ffmpeg
 ```
 
-### Render the image frames
-
-To render a timespan of image "frames" and make them a video with ffmpeg:
-
-```
-su - renderer
-mkdir your-area-video && cd your-area-video
-/build/osm-history-renderer/renderer/render-animation.py --style /home/renderer/src/openstreetmap-carto/mapnik-hist.xml --db postgresql://renderer:renderer@localhost/gis -x 1560x1200 --bbox -78.80725,42.99048,-78.77087,43.01311 --label "\n%Y-%m  " --label-gravity NorthEast
-```
-
-This will make an `animap` subdirectory and output each animation frame there,
-numbered starting from `0000000000.png`.
-
-The renderer defaults to starting just before the earliest data point in the area,
-and stepping 1 month at a time to the present day. The `--label` is optional.
-Change the time step with an option like: `--anistep=months=+3` .  
-For more options, run:  
-`/build/osm-history-renderer/renderer/render-animation.py -h`
-
 ### Create the video
 
-ffmpeg with these flags will create a broadly-compatible H264 MP4 video:
+ffmpeg with these flags will create a widely-compatible H264 MP4 video:
 
 ```
 su - renderer

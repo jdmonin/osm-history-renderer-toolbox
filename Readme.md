@@ -1,4 +1,4 @@
-# OSM History Renderer toolbox Docker Build
+# OSM History Renderer Toolbox docker build
 
 [![at 2008-09](img/thumbs/ubnorth-2008-09.png)](img/ubnorth-2008-09.png)
 [![at 2011-04](img/thumbs/ubnorth-2011-04.png)](img/ubnorth-2011-04.png)
@@ -20,10 +20,10 @@ To work with OSM's large data files, you'll want to run it with a bind mount to 
 
 ## General Process
 
-- Decide which area you want to render history for, using the [OpenStreetMap](https://www.openstreetmap.org/) website
-- Download history file for that area's surrounding region from the "internal" area of https://osm-internal.download.geofabrik.de/
-- Extract the history of the smaller area you want to render, or its surrounding metropolitan area
-- Import that smaller history file into a PostGIS database
+- Decide which local area you want to render history for, using the [OpenStreetMap](https://www.openstreetmap.org/) website
+- Download history file for that area's surrounding region from the "internal" section of https://osm-internal.download.geofabrik.de/
+- Extract the history of the local area you want to render, or its surrounding metropolitan area
+- Import that extracted history into a PostGIS database
 - Render the area at a single date
 - Or, render a timespan of image "frames" and make them a video with a program like ffmpeg
 
